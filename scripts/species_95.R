@@ -12,14 +12,14 @@ library(readr)
 
 
 ## loading bacterial species taxIDs
-species_taxIDs <- read.table("automatic/bacteria-species.detailed.txt", header=FALSE, sep="\t", quote = "", check.names=FALSE, comment.char="") 
+args = commandArgs(trailingOnly=TRUE)
+species_taxIDs <- read.table(args[1], header=FALSE, sep="\t", quote = "", check.names=FALSE, comment.char="") 
 colnames(species_taxIDs) <- c("TaxID", "Species", "Level")
-genbank_genomes <- read.table("assembly_summary.genbank.txt", header=TRUE, sep="\t", quote = "", check.names=FALSE, comment.char="", skip=1) 
-#refseq_genomes <- read.table("assembly_summary.refseq.txt", header=TRUE, sep="\t", quote = "", check.names=FALSE, comment.char="", skip=1)
+genbank_genomes <- read.table(args[2], header=TRUE, sep="\t", quote = "", check.names=FALSE, comment.char="", skip=1) 
 
 ## reading bracken outputs
 customized_read_tsv <- function(file){
-	id <- gsub('bracken/(.*)/bracken', '\\1', file)
+	id <- gsub("bracken/(.*)/bracken", '\\1', file)
     read_tsv(file) %>%
         mutate(sampleName = id)
 }
@@ -57,7 +57,7 @@ write.table(candidates, "bacteria.95.tsv", sep="\t", row.names=FALSE, quote=FALS
 genomes <- subset(genbank_genomes, as.character(species_taxid) %in% as.character(candidates$TaxID) )
 taxIDs <- unique(genomes$species_taxid)
 reference_genomes <- genomes[FALSE, ]
-for (i in 1:length(taxIDs)){
+for (i in seq_along(taxIDs)){
     message(i)
 	genbank_taxID <- subset(genomes, species_taxid == taxIDs[i] )
 	if (length(subset(genbank_taxID, refseq_category=="reference genome" )$species_taxid) > 0){
@@ -81,5 +81,5 @@ for (i in 1:length(taxIDs)){
     }
 }
 
-write.table(reference_genomes, "genomes.info.tsv", row.names=FALSE, sep="\t", quote=FALSE)
-write.table(reference_genomes$assembly_accession, "genome_assembly.tsv", row.names=FALSE, col.names = FALSE, sep="\t", quote=FALSE)
+write.table(reference_genomes, args[3], row.names=FALSE, sep="\t", quote=FALSE)
+write.table(reference_genomes$assembly_accession, args[4], row.names=FALSE, col.names = FALSE, sep="\t", quote=FALSE)
