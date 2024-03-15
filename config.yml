@@ -1,0 +1,19 @@
+# Define analysis parameters
+PAIRED: false # true, false
+HOST: 'HUMAN' # HUMAN, MOUSE
+SUB_DEPTH: 5000000 # subsampling depth
+IPHOMED: '/home/labs/elinav/rvaldes/programs/iphomed/' # IPHOMED directory 
+
+# BOWTIE2 databases
+BOW_H_DB: '/home/labs/elinav/rvaldes/reference/DNA/Bowtie2/hg37dec_v0.1' # human database directory
+BOW_M_DB: '/home/labs/elinav/rvaldes/reference/DNA/Mouse/mouse_C57BL_6NJ' # mouse database directory
+
+# Kraken2 database
+KRAKEN_DB: '/home/labs/elinav/rvaldes/reference/kraken2_braken_gtdb_r89/' # kraken database directory
+
+# Bracken database
+BRACKEN_DB: '/home/labs/elinav/rvaldes/reference/kraken2_braken_gtdb_r89/' # bracken database directory
+
+# UNIPROT databases
+UNIPROT_H_DB: '/home/labs/elinav/rvaldes/analysis/Avner_PSC/NutriIBD/reference/uniprot_human.fasta' # human uniprot fasta
+UNIPROT_M_DB: '/home/labs/elinav/rvaldes/analysis/Avner_PSC/NutriIBD/reference/uniprot_mouse.fasta' # mouse uniprot fasta

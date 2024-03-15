@@ -1,0 +1,27 @@
+name: IPHOMED
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.8
+  - snakemake
+  - fastp
+  - kraken2
+  - bracken
+  - minimap2
+  - r-base
+  - r-dplyr
+  - ncbi-datasets-cli
+  - samtools
+  - diamond
+  - p7zip
+  - bowtie2
+  - seqtk
+  - dotnet
+  - pigz
+  - r-tidyr
+  - r-readr
+  - taxonkit
+  - seqkit
+  - bioawk

@@ -25,6 +25,9 @@ BOW_HUMAN_DB = config['BOW_H_DB']
 UNIPROT_H_DB = config['UNIPROT_H_DB']
 UNIPROT_M_DB = config['UNIPROT_M_DB']
 
+# IPHOMED directory
+IPHOMED = config['IPHOMED']
+
 if HOST == 'HUMAN':
 	BOW_DB = BOW_HUMAN_DB
 	UNIPROT_DB = UNIPROT_H_DB
@@ -40,9 +43,9 @@ SAMPLES = [line.rstrip("\n") for line in file]
 
 rule all:
     input:
-		all_bracken = join('bracken', 'all.combined'),
-		all_diamond = expand(join('diamond', '{sample}', 'blastout'), sample = SAMPLES),
-		all_dimaond_iphomed = expand(join('diamond_iphomed', '{sample}', 'final.blastout'), sample = SAMPLES)
+		counts_pre = expand(join('preprocess', '{sample}', '{sample}.pre.counts'), sample = SAMPLES),
+		counts_post = expand(join('preprocess', '{sample}', '{sample}.counts'), sample = SAMPLES),
+		all_diamond_iphomed = expand(join('iphomed_diamond', '{sample}', '{sample}.blastout', sample = SAMPLES)
 
 if PAIRED:
 
@@ -266,6 +269,8 @@ rule bracken:
 rule species_95:
 	input:
 		bracken = expand(join('bracken', '{sample}', 'bracken'), sample = SAMPLES)
+	params:
+		iphomed_dir = IPHOMED
 	output:
 		species_taxIDs = join('species_95', 'bacterial-species.txt'),
 		species_taxIDs_detailed = join('species_95', 'bacterial-species.txt'),
@@ -288,7 +293,7 @@ rule species_95:
 		taxonkit lineage -L -nr {output.species_taxIDs} -o {output.species_taxIDs_detailed}
 		wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/bacteria/assembly_summary.txt -O {output.genbank_assemblies}
 		sed -i s'/^#//' {output.genbank_assemblies}
-		Rscript scripts/species_95.R {output.species_taxIDs_detailed} {output.genbank_assemblies} {output.genomes_95} {output.assemblies_95}
+		Rscript {params.iphomed_dir}/scripts/species_95.R {output.species_taxIDs_detailed} {output.genbank_assemblies} {output.genomes_95} {output.assemblies_95}
 		awk '{print "datasets  download genome accession ", $1," --filename ", $1, ".zip"}'  {output.assemblies_95} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
 		"""
 
@@ -323,6 +328,8 @@ if PAIRED:
 		input:
 			reference = rules.download_genomes.output.fasta,
 			assembly_info = rules.download_genomes.output.assembly_info
+		params:
+			iphomed_dir = IPHOMED
 		output:
 			bam = join('alignment2genome', 'alignment2genome.bam'),
 			depth = join('aligment2genomes', 'alignment2genome.depth'),
@@ -340,7 +347,7 @@ if PAIRED:
 			"""
 			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*R1*gz) <(cat preprocess/*/*R2*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
-			python script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
+			python {params.iphomed_dir}/script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
 
 else:
@@ -349,6 +356,8 @@ else:
 		input:
 			reference = rules.download_genomes.output.fasta,
 			assembly_info = rules.download_genomes.output.assembly_info
+		params:
+			iphomed_dir = IPHOMED
 		output:
 			bam = join('alignment2genome', 'alignment2genome.bam'),
 			depth = join('iphomed', 'alignment2genome.depth'),
@@ -366,12 +375,14 @@ else:
 			"""
 			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
-			python script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
+			python {params.iphomed_dir}/script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
 
 rule download_protein_sequences:
 	input:
 		depth = rules.aligment2genomes.output.summary_depth
+	params:
+		iphomed_dir = IPHOMED
 	output:
 		coveraged_genomes = join('protein_sequences', 'covered_genomes.list'),
 		assemblies_download = join('protein_sequences', 'download_proteins.sh'),
@@ -388,7 +399,7 @@ rule download_protein_sequences:
 		queue = 'new-short'
 	shell:
 		"""
-		Rscript scripts/covered_genomes.R {input.depth} {output.covered_genomes}
+		Rscript {params.iphomed_dir}/scripts/covered_genomes.R {input.depth} {output.covered_genomes}
 		awk '{print "./datasets  download genome accession ", $0,"--include protein --filename ", $1, ".zip"}' {output.covered_genomes} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
 		sh {output.assemblies_download}
 		ls *zip | awk '{print "7za -y x "$0}' > unzip.sh
@@ -402,6 +413,8 @@ rule aligment2proteinsequence:
 	input:
 		database = rules.download_protein_sequences.output.diamond_db,
 		fasta = rules.download_protein_sequences.output.protein_sequences
+	params:
+		iphomed_dir = IPHOMED
 	output:
 		diamond = join('alignment2protein', 'alignment2protein.diamond'),
 		lengths = join('alignment2protein', 'proteins.fasta.lengths'),
@@ -420,7 +433,7 @@ rule aligment2proteinsequence:
 		"""
 		cat preprocess/*/*gz | diamond blastx -o {output.diamond} --db {input.database}  -e 0.001 --threads 10 -k 1 -c 1
 		bioawk  -c fastx '{ print $name, length($seq) }' < {input.fasta} > {output.lengths}
-		cat {output.diamond} | python script/protein_coverage.py {output.lengths} > {output.summary_depth}
+		cat {output.diamond} | python {params.iphomed_dir}/script/protein_coverage.py {output.lengths} > {output.summary_depth}
 		awk '$5>0' {input.summary_depth} | awk '{print $1}' > {output.summary_depth_filtered}
 		"""
 
