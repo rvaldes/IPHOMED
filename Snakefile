@@ -1,6 +1,6 @@
 
 ### Integrated Proteomics of HOst-MicrobiomE-Diet (IPHOMED)
-### Rafael Valdés-Mas (Elinav Lab)
+### Rafael Valdes-Mas (Elinav Lab)
 
 import json
 from os.path import join, basename, dirname
@@ -24,6 +24,7 @@ BOW_MOUSE_DB = config['BOW_M_DB']
 BOW_HUMAN_DB = config['BOW_H_DB']
 UNIPROT_H_DB = config['UNIPROT_H_DB']
 UNIPROT_M_DB = config['UNIPROT_M_DB']
+UNIPROT_CRAP_DB = config['UNIPROT_CRAP_DB']
 
 # IPHOMED directory
 IPHOMED = config['IPHOMED']
@@ -42,34 +43,33 @@ SAMPLES = [line.rstrip("\n") for line in file]
 # Rules -------------------------------------------------
 
 rule all:
-    input:
+	input:
 		counts_pre = expand(join('preprocess', '{sample}', '{sample}.pre.counts'), sample = SAMPLES),
 		counts_post = expand(join('preprocess', '{sample}', '{sample}.counts'), sample = SAMPLES),
-		all_diamond_iphomed = expand(join('iphomed_diamond', '{sample}', '{sample}.blastout', sample = SAMPLES)
-
+		all_diamond_iphomed = expand(join('iphomed_diamond', '{sample}', '{sample}.blastout'), sample = SAMPLES)
+		
 if PAIRED:
-
 	rule counts_pre:
-        input:
-            r1 = 'FASTQs/{sample}_R1.gz'
-        output:
-            counts = join('preprocess', '{sample}', '{sample}.pre.counts')
-        log:
-            join('preprocess', '{sample}', 'pre.counts.log')
-        benchmark:
-            join('preprocess', '{sample}', 'pre.counts.benchmark.tsv')
-        threads:
-            1
-        resources:
-            mem = 100,
-            queue = 'new-short'
-        shell:
-            "zcat {input.r1} | wc -l | awk '{{print ($1/4)}}' > {output.counts}"
+		input:
+			r1 = 'FASTQs/{sample}_R1.fastq.gz'
+		output:
+			counts = join('preprocess', '{sample}', '{sample}.pre.counts')
+		log:
+			join('preprocess', '{sample}', 'pre.counts.log')
+		benchmark:
+			join('preprocess', '{sample}', 'pre.counts.benchmark.tsv')
+		threads:
+			1
+		resources:
+			mem = 100,
+			queue = 'new-short'
+		shell:
+			"zcat {input.r1} | wc -l | awk '{{print ($1/4)}}' > {output.counts}"
 
 	rule preprocess:
 		input:
-			r1 = 'FASTQs/{sample}_R1.gz',
-			r2 = 'FASTQs/{sample}_R2.gz'
+			r1 = 'FASTQs/{sample}_R1.fastq.gz',
+			r2 = 'FASTQs/{sample}_R2.fastq.gz'
 		params:
 			bowtieDB = BOW_DB
 		output:
@@ -146,16 +146,15 @@ if PAIRED:
 		threads:
 			1
 		resources:
-			mem = 400000,
-			queue = 'new-short'
+			mem = 320000,
+			queue = 'elinav'
 		shell:
 			"kraken2 --db {params.kdb} --threads 1 --output {output.out} --report {output.report} --use-names --paired {input.r1} {input.r2}"
 
 else:
-
 	rule counts_pre:
 		input:
-			r1 = 'FASTQs/{sample}.gz'
+			r1 = 'FASTQs/{sample}.fastq.gz'
 		output:
 			counts = join('preprocess', '{sample}', '{sample}.pre.counts')
 		log:
@@ -172,11 +171,11 @@ else:
 
 	rule preprocess:
 		input:
-			r1 = 'FASTQs/{sample}.gz'
+			r1 = 'FASTQs/{sample}.fastq.gz'
 		params:
 			bowtieDB = BOW_DB
 		output:
-			r1 = join('preprocess', '{sample}', '{sample}.fastq.gz')
+			r1 = join('preprocess', '{sample}', '{sample}_R1.fastq.gz')
 		log:
 			join('preprocess', '{sample}', 'preprocess.log')
 		benchmark:
@@ -213,7 +212,7 @@ else:
 		params:
 			sub_depth = SUB_DEPTH
 		output:
-			r1 = join('subsampling', '{sample}', '{sample}.fastq.gz')
+			r1 = join('subsampling', '{sample}', '{sample}_R1.fastq.gz')
 		log:
 			join('subsampling', '{sample}', 'subsampling.log')
 		benchmark:
@@ -242,8 +241,8 @@ else:
 		threads:
 				1
 		resources:
-				mem = 400000,
-				queue = 'new-short'
+				mem = 320000,
+				queue = 'elinav'
 		shell:
 				"kraken2 --db {params.kdb} --threads 1 --output {output.out} --report {output.report} --use-names {input.r1} "
 
@@ -273,9 +272,10 @@ rule species_95:
 		iphomed_dir = IPHOMED
 	output:
 		species_taxIDs = join('species_95', 'bacterial-species.txt'),
-		species_taxIDs_detailed = join('species_95', 'bacterial-species.txt'),
+		species_taxIDs_detailed = join('species_95', 'bacterial-species.detailed.txt'),
 		genbank_assemblies = join('species_95', 'assembly_summary.genbank.txt'),
 		genomes_95 = join('species_95', 'genomes_95.info.tsv'),
+		species_abundances = join('species_95', 'bacterial_abundances.95.tsv'),
 		assemblies_95 = join('species_95', 'assemblies_95.tsv'),
 		assemblies_download = join('species_95', 'download_genomes.sh')
 	log:
@@ -285,16 +285,16 @@ rule species_95:
 	threads:
 		1
 	resources:
-		mem = 1000,
+		mem = 5000,
 		queue = 'new-short'
 	shell:
 		"""
-		taxonkit list --ids 2 -I ""| taxonkit filter -E species -o {output.species_taxIDs}
+		taxonkit list --ids 2 -I \"\" | taxonkit filter -E species -o {output.species_taxIDs}
 		taxonkit lineage -L -nr {output.species_taxIDs} -o {output.species_taxIDs_detailed}
 		wget https://ftp.ncbi.nlm.nih.gov/genomes/genbank/bacteria/assembly_summary.txt -O {output.genbank_assemblies}
 		sed -i s'/^#//' {output.genbank_assemblies}
-		Rscript {params.iphomed_dir}/scripts/species_95.R {output.species_taxIDs_detailed} {output.genbank_assemblies} {output.genomes_95} {output.assemblies_95}
-		awk '{print "datasets  download genome accession ", $1," --filename ", $1, ".zip"}'  {output.assemblies_95} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
+		Rscript {params.iphomed_dir}/scripts/species_95.R {output.species_taxIDs_detailed} {output.genbank_assemblies} {output.species_abundances} {output.genomes_95} {output.assemblies_95}
+		awk '{{print \"datasets  download genome accession \", $1,\" --filename \", $1, \".zip"}}'  {output.assemblies_95} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
 		"""
 
 rule download_genomes:
@@ -315,15 +315,15 @@ rule download_genomes:
 	shell:
 		"""
 		sh {input.script}
-		ls *zip | awk '{print "7za -y x "$1}'  > unzip.sh
+		ls *zip | awk '{{print \"7za -y x \"$1}}'  > unzip.sh
 		sh unzip.sh
-		rm *zip
+		rm *zip unzip.sh
 		cat ncbi_dataset/*/*/*fna > {output.fasta}
-		awk '{print FILENAME"\t"$0}' ncbi_dataset/*/*/*fna | grep ">" | awk '{print $1"\t"$2}' | sed -e s'/[\._0-9a-zA-Z\/]*\///'| sed -e s'/>//' | sed -e s'/\_genomic.fna//' > {output.assembly_info}
+		awk '{{print FILENAME\"\t\"$0}}' ncbi_dataset/*/*/*fna | grep \">\" | awk '{{print $1\"\t\"$2}}' | sed -e s'/[\._0-9a-zA-Z\/]*\///'| sed -e s'/>//' | sed -e s'/\_genomic.fna//' > {output.assembly_info}
+		rm -rf ncbi_dataset
 		"""
 
 if PAIRED:
-
 	rule aligment2genomes:
 		input:
 			reference = rules.download_genomes.output.fasta,
@@ -332,8 +332,8 @@ if PAIRED:
 			iphomed_dir = IPHOMED
 		output:
 			bam = join('alignment2genome', 'alignment2genome.bam'),
-			depth = join('aligment2genomes', 'alignment2genome.depth'),
-			summary_depth = join('aligment2genomes', 'alignment2genome.summary')
+			depth = join('alignment2genome', 'alignment2genome.depth'),
+			summary_depth = join('alignment2genome', 'alignment2genome.summary')
 		log:
 			join('alignment2genome', 'aligment2genomes.log')
 		benchmark:
@@ -347,11 +347,10 @@ if PAIRED:
 			"""
 			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*R1*gz) <(cat preprocess/*/*R2*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
-			python {params.iphomed_dir}/script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
+			python {params.iphomed_dir}/scripts/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
 
 else:
-
 	rule aligment2genomes:
 		input:
 			reference = rules.download_genomes.output.fasta,
@@ -360,12 +359,12 @@ else:
 			iphomed_dir = IPHOMED
 		output:
 			bam = join('alignment2genome', 'alignment2genome.bam'),
-			depth = join('iphomed', 'alignment2genome.depth'),
-			summary_depth = join('iphomed', 'alignment2genome.summary')
+			depth = join('alignment2genome', 'alignment2genome.depth'),
+			summary_depth = join('alignment2genome', 'alignment2genome.summary')
 		log:
-			join('alignment2genome', 'aligment2genomes.log')
+			join('alignment2genome', 'alignment2genomes.log')
 		benchmark:
-			join('alignment2genome', 'aligment2genomes.benchmark.tsv')
+			join('alignment2genome', 'alignment2genomes.benchmark.tsv')
 		threads:
 			20
 		resources:
@@ -375,7 +374,7 @@ else:
 			"""
 			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
-			python {params.iphomed_dir}/script/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
+			python {params.iphomed_dir}/scripts/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
 
 rule download_protein_sequences:
@@ -384,7 +383,7 @@ rule download_protein_sequences:
 	params:
 		iphomed_dir = IPHOMED
 	output:
-		coveraged_genomes = join('protein_sequences', 'covered_genomes.list'),
+		covered_genomes = join('protein_sequences', 'covered_genomes.list'),
 		assemblies_download = join('protein_sequences', 'download_proteins.sh'),
 		protein_sequences = join('protein_sequences', 'proteins.fasta'),
 		diamond_db = join('protein_sequences', 'proteins_diamond.dmnd')
@@ -400,13 +399,14 @@ rule download_protein_sequences:
 	shell:
 		"""
 		Rscript {params.iphomed_dir}/scripts/covered_genomes.R {input.depth} {output.covered_genomes}
-		awk '{print "./datasets  download genome accession ", $0,"--include protein --filename ", $1, ".zip"}' {output.covered_genomes} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
+		awk '{{print \"datasets  download genome accession \", $0,\"--include protein --filename \", $1, \".zip\"}}' {output.covered_genomes} | sed -e s'/ .zip/.zip/' > {output.assemblies_download}
 		sh {output.assemblies_download}
-		ls *zip | awk '{print "7za -y x "$0}' > unzip.sh
+		ls *zip | awk '{{print \"7za -y x \"$0}}' > unzip.sh
 		sh unzip.sh
-		rm *zip
+		rm *zip unzip.sh
 		cat ncbi_dataset/data/*/protein.faa > {output.protein_sequences}
-		diamond makedb --in {output.protein_sequences} -d proteins_diamond
+		diamond makedb --in {output.protein_sequences} -d protein_sequences/proteins_diamond
+		rm -rf ncbi_dataset
 		"""
 
 rule aligment2proteinsequence:
@@ -421,33 +421,33 @@ rule aligment2proteinsequence:
 		summary_depth = join('alignment2protein', 'alignment2protein.summary'),
 		summary_depth_filtered = join('alignment2protein', 'alignment2protein.summary.filtered')
 	log:
-		join('alignment2protein', 'aligment2genomes.log')
+		join('alignment2protein', 'alignment2protein.log')
 	benchmark:
-		join('alignment2protein', 'aligment2genomes.benchmark.tsv')
+		join('alignment2protein', 'alignment2protein.benchmark.tsv')
 	threads:
 		10
 	resources:
-		mem = 1000,
+		mem = 5000,
 		queue = 'new-short'
 	shell:
 		"""
-		cat preprocess/*/*gz | diamond blastx -o {output.diamond} --db {input.database}  -e 0.001 --threads 10 -k 1 -c 1
-		bioawk  -c fastx '{ print $name, length($seq) }' < {input.fasta} > {output.lengths}
-		cat {output.diamond} | python {params.iphomed_dir}/script/protein_coverage.py {output.lengths} > {output.summary_depth}
-		awk '$5>0' {input.summary_depth} | awk '{print $1}' > {output.summary_depth_filtered}
+		diamond blastx -q <(zcat preprocess/*/*_R*gz) -o {output.diamond} --db {input.database}  -e 0.001 --threads 10 -k 1 -c 1
+		bioawk  -c fastx '{{ print $name, length($seq) }}' < {input.fasta} > {output.lengths}
+		cat {output.diamond} | python {params.iphomed_dir}/scripts/protein_coverage.py {output.lengths} > {output.summary_depth}
+		awk '$5>0' {output.summary_depth} | awk '{{print $1}}' > {output.summary_depth_filtered}
 		"""
 
-rule iphomed_database:
+rule iphomed_bacteria_database:
 	input:
-		summary_depth_filtered = rules.aligment2proteinsequence.output.summary_depth_filtered,
-		fasta = rules.download_protein_sequences.output.protein_sequences
+		fasta = rules.download_protein_sequences.output.protein_sequences,
+		summary_depth_filtered = rules.aligment2proteinsequence.output.summary_depth_filtered
 	output:
-		fasta = join('iphomed', 'iphomed.fasta'),
-		diamond_db = join('iphomed', 'iphomed.dmnd')
+		fasta = join('iphomed_database', 'iphomed.bacteria.fasta'),
+		diamond_db = join('iphomed_database', 'iphomed.bacteria.dmnd')
 	log:
-		join('iphomed', 'iphomed_database.log')
+		join('iphomed_database', 'iphomed_bacteria_database.log')
 	benchmark:
-		join('iphomed', 'iphomed_database.benchmark.tsv')
+		join('iphomed_database', 'iphomed_bacteria_database.benchmark.tsv')
 	threads:
 		1
 	resources:
@@ -455,49 +455,93 @@ rule iphomed_database:
 		queue = 'new-short'
 	shell:
 		"""
-		seqkit grep -f {output.summary_depth_filtered} {input.fasta} > {output.fasta}
-		diamond makedb --in {output.fasta} -d iphomed
+		seqkit grep -f {input.summary_depth_filtered} {input.fasta} > {output.fasta}
+		diamond makedb --in {output.fasta} -d iphomed_database/iphomed.bacteria
 		"""
 
 if PAIRED:
-
-	rule diamond_iphomed:
+	rule diamond_iphomed_bacteria:
 		input:
 			r1 = rules.subsample.output.r1,
-			r2 = rules.subsample.output.r2
+			r2 = rules.subsample.output.r2,
+			db = rules.iphomed_bacteria_database.output.diamond_db
 		output:
-			diamond = join('iphomed_diamond', '{sample}', '{sample}.blastout')
+			diamond = join('iphomed_bacteria_diamond', '{sample}', '{sample}.blastout')
 		log:
-			join('iphomed_diamond', '{sample}', 'iphomed_diamond.log')
+			join('iphomed_bacteria_diamond', '{sample}', 'iphomed_bacteria_diamond.log')
 		benchmark:
-			join('iphomed_diamond', '{sample}', 'iphomed_diamond.benchmark.tsv')
+			join('iphomed_bacteria_diamond', '{sample}', 'iphomed_bacteria_diamond.benchmark.tsv')
 		threads:
-			5
+			10
 		resources:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
 			"""
-			cat {input.r1} {input.r2} | diamond blastx -o {output.diamond} --db {input.db} -e 0.001 --threads 1 -k 1 -c 1
+			zcat {input.r1} {input.r2} | diamond blastx -o {output.diamond} --db {input.db} -e 0.001 --threads 10 -k 1 -c 1
 			"""
 
 else:
-
-	rule diamond_iphomed:
+	rule diamond_iphomed_bacteria:
 		input:
-			r1 = rules.subsample.output.r1
+			r1 = rules.subsample.output.r1,
+			db = rules.iphomed_bacteria_database.output.diamond_db
 		output:
-			diamond = join('iphomed_diamond', '{sample}', '{sample}.blastout')
+			diamond = join('iphomed_bacteria_diamond', '{sample}', '{sample}.blastout')
 		log:
-			join('iphomed_diamond', '{sample}', 'iphomed_diamond.log')
+			join('iphomed_bacteria_diamond', '{sample}', 'iphomed_bacteria_diamond.log')
 		benchmark:
-			join('iphomed_diamond', '{sample}', 'iphomed_diamond.benchmark.tsv')
+			join('iphomed_bacteria_diamond', '{sample}', 'iphomed_bacteria_diamond.benchmark.tsv')
 		threads:
-			5
+			10
 		resources:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
 			"""
-			cat {input.r1} | diamond blastx -o {output.diamond} --db {input.db} -e 0.001 --threads 1 -k 1 -c 1
+			diamond blastx -q {input.r1} -o {output.diamond} --db {input.db} -e 0.001 --threads 10 -k 1 -c 1
 			"""
+
+rule iphomed_proteomics_calibration:
+	input:
+		iphomed_host = UNIPROT_DB,
+		mzml = 'mzML/ExperimentalDesign.tsv'
+	output:
+		calibrated = join('iphomed', 'Calibrated', 'Task1CalibrationTask/AutoGeneratedManuscriptProse.txt')
+	log:
+		join('iphomed', 'Calibrated', 'iphomed_proteomics_calibration.log')
+	benchmark:
+		join('iphomed', 'Calibrated', 'iphomed_proteomics_calibration.benchmark.tsv')
+	threads:
+		10
+	resources:
+		mem = 30000,
+		queue = 'new-long'
+	shell:
+		"""
+		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {input.iphomed_host} -s iphomed/Calibrated/Task1Task1SearchTask/ -t {params.iphomed_dir}/TaskCalibrationTaskconfig.toml -o Search
+		"""
+
+
+rule iphomed_proteomics_search:
+	input:
+		iphomed_bacteria = rules.iphomed_bacteria_database.output.fasta,
+		iphomed_diet = '{params.iphomed_dir}/iphomed.diet.fasta',
+		iphomed_host = UNIPROT_DB,
+		iphomed_crap = UNIPROT_CRAP_DB,
+		calibrated = rules.iphomed_proteomics_calibration.output.calibrated
+	output:
+		search = join('iphomed', 'Search', 'Task1SearchTask/AutoGeneratedManuscriptProse.txt')
+	log:
+		join('iphomed', 'Search', 'iphomed_proteomics_search.log')
+	benchmark:
+		join('iphomed', 'Search', 'iphomed_proteomics_search.benchmark.tsv')
+	threads:
+		10
+	resources:
+		mem = 30000,
+		queue = 'new-long'
+	shell:
+		"""
+		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {input.iphomed_host} {input.iphomed_bacteria} {input.iphomed_diet} {input.iphomed_crap} -s iphomed/Calibrated/Task1Task1SearchTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
+		"""

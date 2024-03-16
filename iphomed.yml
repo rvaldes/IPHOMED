@@ -25,3 +25,4 @@ dependencies:
   - taxonkit
   - seqkit
   - bioawk
+  - metamorpheus

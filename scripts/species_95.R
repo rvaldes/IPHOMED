@@ -51,7 +51,7 @@ counts$number <- as.numeric(counts$number)
 colnames(counts)[1] <- "TaxID"
 
 candidates <- subset(counts, Cum_Percentage<=95)
-write.table(candidates, "bacteria.95.tsv", sep="\t", row.names=FALSE, quote=FALSE)
+write.table(candidates, args[3], sep="\t", row.names=FALSE, quote=FALSE)
 
 ## selecting assembly_accession
 genomes <- subset(genbank_genomes, as.character(species_taxid) %in% as.character(candidates$TaxID) )
@@ -81,5 +81,5 @@ for (i in seq_along(taxIDs)){
     }
 }
 
-write.table(reference_genomes, args[3], row.names=FALSE, sep="\t", quote=FALSE)
-write.table(reference_genomes$assembly_accession, args[4], row.names=FALSE, col.names = FALSE, sep="\t", quote=FALSE)
+write.table(reference_genomes, args[4], row.names=FALSE, sep="\t", quote=FALSE)
+write.table(reference_genomes$assembly_accession, args[5], row.names=FALSE, col.names = FALSE, sep="\t", quote=FALSE)
