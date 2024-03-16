@@ -4,19 +4,19 @@ HOST: 'HUMAN' # HUMAN, MOUSE
 SUB_DEPTH: 5000000 # subsampling depth
 
 # Define IPHOMED directory
-IPHOMED: '/home/labs/elinav/rvaldes/programs/iphomed/' # IPHOMED directory
+IPHOMED: '' # IPHOMED directory
 
 # BOWTIE2 databases
-BOW_H_DB: '/home/labs/elinav/rvaldes/reference/DNA/Bowtie2/hg37dec_v0.1' # human database directory
-BOW_M_DB: '/home/labs/elinav/rvaldes/reference/DNA/Mouse/mouse_C57BL_6NJ' # mouse database directory
+BOW_H_DB: '' # human database directory
+BOW_M_DB: '' # mouse database directory
 
 # Kraken2 database
-KRAKEN_DB: '/home/labs/elinav/rvaldes/reference/updated_kraken2_r95/Struo/genomes/genbank/GTDB_Human_Mouse_Fungi/' # kraken database directory
+KRAKEN_DB: '' # kraken database directory
 
 # Bracken database
-BRACKEN_DB: '/home/labs/elinav/rvaldes/reference/updated_kraken2_r95/Struo/genomes/genbank/GTDB_Human_Mouse_Fungi/' # bracken database directory
+BRACKEN_DB: '' # bracken database directory
 
 # UNIPROT databases
-UNIPROT_H_DB: '/home/labs/elinav/rvaldes/analysis/Avner_PSC/NutriIBD/reference/uniprot_human.fasta' # human uniprot fasta
-UNIPROT_M_DB: '/home/labs/elinav/rvaldes/analysis/Avner_PSC/NutriIBD/reference/uniprot_mouse.fasta' # mouse uniprot fasta
-UNIPROT_CRAP_DB: '/home/labs/elinav/rvaldes/analysis/Avner_PSC/NutriIBD/reference/uniprot-cRAP-2-2-2018.fasta' # contamination uniprot fasta
+UNIPROT_H_DB: '' # human uniprot fasta
+UNIPROT_M_DB: '' # mouse uniprot fasta
+UNIPROT_CRAP_DB: '' # contamination uniprot fasta
