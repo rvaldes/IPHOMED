@@ -26,3 +26,4 @@ dependencies:
   - seqkit
   - bioawk
   - metamorpheus
+  - csvtk
