@@ -48,7 +48,7 @@ rule all:
 		counts_post = expand(join('preprocess', '{sample}', '{sample}.counts'), sample = SAMPLES),
 		all_diamond_iphomed = expand(join('iphomed_bacteria_diamond', '{sample}', '{sample}.blastout'), sample = SAMPLES),
 		proteomics = join('iphomed', 'Search', 'Task1SearchTask/AllQuantifiedProteinGroups.tsv'),
-		blastp_output_annotated = join('iphomed', 'Diet', 'diet.peptides.blastp.output.annotated')
+		dietary_proteins_bySample = join('iphomed', 'diet.proteins.filtered.bySample.tsv')
 		
 if PAIRED:
 	rule counts_pre:
@@ -549,8 +549,7 @@ rule iphomed_proteomics_search:
 		queue = 'new-medium'
 	shell:
 		"""
-		#dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.diet.fasta {params.iphomed_crap} -s iphomed/Calibrated/Task1CalibrationTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
-		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.proteinShake.fasta {params.iphomed_crap} -s iphomed/Calibrated/Task1CalibrationTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
+		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.diet.fasta {params.iphomed_crap} -s iphomed/Calibrated/Task1CalibrationTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
 		"""
 
 rule iphomed_proteomics_3D:
@@ -575,7 +574,7 @@ rule iphomed_proteomics_3D:
 		queue = 'new-short'
 	shell:
 		"""
-		python {params.iphomed_dir}/scripts/proteomics3D.py {input.proteomics} {params.iphomed_host} {input.iphomed_bacteria}  {params.iphomed_dir}/iphomed.proteinShake.fasta {output.host_proteins} {output.bacterial_proteins} {output.dietary_proteins} 
+		python {params.iphomed_dir}/scripts/proteomics3D.py {input.proteomics} {params.iphomed_host} {input.iphomed_bacteria}  {params.iphomed_dir}/iphomed.diet.fasta {output.host_proteins} {output.bacterial_proteins} {output.dietary_proteins} 
 		"""
 
 
@@ -593,15 +592,40 @@ rule iphomed_dietary_signal:
 	benchmark:
 		join('iphomed', 'Diet', 'iphomed_dietary_signal.benchmark.tsv')
 	threads:
+		40
+	resources:
+		mem = 100,
+		queue = 'new-short'
+	shell:
+		"""
+		python {params.iphomed_dir}/scripts/dietary_peptides.py {input.proteomics} > {output.dietary_peptides}
+		blastp -query {output.dietary_peptides} -db /shareDB/nr/Jul-2022/nr -out {output.blastp_output} -word_size 2 -matrix PAM30 -threshold 11 -comp_based_stats 0 -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids\" -evalue 200000 -gapopen 9 -gapextend 1 -num_alignments 100 -window_size 40 -num_threads 40
+		echo -e \"Query\\tTarget\\tevalue\tbitscore\\tTaxID\\tGenusTaxID\\tGenusName\tLevel\" > {output.blastp_output_annotated}
+		cat {output.blastp_output} | taxonkit lineage -t -i 13 | csvtk cut -Ht -f 1,2,11,12,13,15 | csvtk unfold -Ht -f 6 -s \";\" | taxonkit lineage -r -n -L -i 6 | awk '$(NF)==\"genus\"' >> {output.blastp_output_annotated}
+		"""
+
+rule iphomed_diet_filter:
+	input:
+		blastout = rules.iphomed_dietary_signal.output.blastp_output_annotated,
+		proteomics = rules.iphomed_proteomics_3D.output.dietary_proteins
+	params:
+		iphomed_dir = IPHOMED
+	output:
+		filtered_peptides = join('iphomed', 'Diet', 'diet.peptides.filtered.list'),
+		dietary_proteins = join('iphomed', 'diet.proteins.filtered.tsv'),
+		dietary_proteins_bySample = join('iphomed', 'diet.proteins.filtered.bySample.tsv')
+	log:
+		join('iphomed', 'Diet', 'iphomed_diet_filter.log')
+	benchmark:
+		join('iphomed', 'Diet', 'iphomed_diet_filter.benchmark.tsv')
+	threads:
 		1
 	resources:
 		mem = 5000,
 		queue = 'new-short'
 	shell:
 		"""
-		python {params.iphomed_dir}/scripts/dietary_peptides.py {input.proteomics} > {output.dietary_peptides}
-		blastp -query {output.dietary_peptides} -db /shareDB/nr/Jul-2022/nr -out {output.blastp_output} -word_size 2 -matrix PAM30 -threshold 11 -comp_based_stats 0 -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids\" -evalue 200000 -gapopen 9 -gapextend 1 -num_alignments 100 -window_size 40 -num_threads 40
-		echo -e \"Query\\tTarget\\tevalue\tbitscore\\tTaxID\\tGenusTaxID\\tGenusName\tOrder\" > {output.blastp_output_annotated}
-		cat {output.blastp_output} | taxonkit lineage -t -i 13 | csvtk cut -Ht -f 1,2,11,12,13,15 | csvtk unfold -Ht -f 6 -s \";\" | taxonkit lineage -r -n -L -i 6 | awk '$(NF)==\"genus\"' >> {output.blastp_output_annotated}
+		Rscript {params.iphomed_dir}/scripts/diet_filter.R {params.iphomed_dir}/iphomed.diet.genus {input.blastout} {output.filtered_peptides}
+		python {params.iphomed_dir}/scripts/diet_filter.py {output.filtered_peptides} {input.proteomics} {output.dietary_proteins}
+		python {params.iphomed_dir}/scripts/combine_dietaryProteins_bySample.py {output.dietary_proteins} {output.dietary_proteins_bySample}
 		"""
-
