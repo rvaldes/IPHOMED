@@ -17,8 +17,9 @@ conda env create -n iphomed -f iphomed.yml
 Modify the *config.yml* file to include all the databases required for the analysis, including:
 * *Bowtie* databases (Human and mouse databases)
   * Pre-built databases are available in https://benlangmead.github.io/aws-indexes/bowtie
-* *Kraken/Bracken* database
+* *Kraken/Bracken* microbiome database
   * Pre-built databases are available in https://ccb.jhu.edu/software/kraken2/index.shtml?t=downloads
+  * It is *highly recommended* to include human and mouse genomes in the database.
 * Host Protein fasta files (Human and mouse proteomes, fasta format)
   * Reference proteomes are availabe in https://www.uniprot.org/proteomes/
 * cRAP protein sequences (fasta format)
