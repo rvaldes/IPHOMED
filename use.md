@@ -1,6 +1,8 @@
 # IPHOMED
 Integrated Proteomics of HOst-MicrobiomE-Diet
 
+![alt text](images/IPHOMED.png?raw=true)
+
 # Installation
 Clone the repository and enter it:
 ```text
