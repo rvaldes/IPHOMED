@@ -18,19 +18,19 @@ conda env create -n iphomed -f iphomed.yml
 
 Modify the *config.yml* file to include all the databases required for the analysis, including:
 * *Bowtie* databases (Human and mouse databases)
-  * Pre-built databases are available in https://benlangmead.github.io/aws-indexes/bowtie
+  * Pre-built databases are available at https://benlangmead.github.io/aws-indexes/bowtie
 * *Kraken/Bracken* microbiome database
-  * Pre-built databases are available in https://ccb.jhu.edu/software/kraken2/index.shtml?t=downloads
+  * Pre-built databases are available at https://ccb.jhu.edu/software/kraken2/index.shtml?t=downloads
   * It is *highly recommended* to include human and mouse genomes in the database.
-* Host Protein fasta files (Human and mouse proteomes, fasta format)
-  * Reference proteomes are availabe in https://www.uniprot.org/proteomes/
+* Host proteomes (Human and mouse fasta files)
+  * Reference proteomes are available at https://www.uniprot.org/proteomes/
 * cRAP protein sequences (fasta format)
-  * Availabe in https://www.thegpm.org/crap/
+  * Available at https://www.thegpm.org/crap/
 * **IPHOMED** installation folder
 * *Metamorpheus* (CMD.dll) path.
   * Locate it in your **IPHOMED** conda environment folder. 
 
-Memory, threads and queues of all rules can be modified in the Snakefile to optmize the resources of your server.
+Memory, threads and queues of all rules can be modified in the Snakefile to optimize the resources of your server.
 
 # Running IPHOMED
 
@@ -38,7 +38,7 @@ Copy the *Snakefile* and *config.yml* in your working directory.
 
 Modify the *config.yml* file according to the details of your analysis:
 
-* *PAIRED*: True/False. Single/paired end squencing configuration.
+* *PAIRED*: True/False. Single/paired-end squencing configuration.
 * *HOST*: HUMAN/MOUSE. Define the host in your experiment.
 * *SUB_DEPTH*: subsampling depth for shotgun metagenomics analysis
 
