@@ -521,7 +521,7 @@ rule iphomed_proteomics_calibration:
 		10
 	resources:
 		mem = 5000,
-		queue = 'new-short'
+		queue = 'elinav'
 	shell:
 		"""
 		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} -s mzML/ -t {params.iphomed_dir}/TaskCalibrationTaskconfig.toml -o iphomed/Calibrated
@@ -574,7 +574,7 @@ rule iphomed_proteomics_3D:
 		queue = 'new-short'
 	shell:
 		"""
-		python {params.iphomed_dir}/scripts/proteomics3D.py {input.proteomics} {params.iphomed_host} {input.iphomed_bacteria}  {params.iphomed_dir}/iphomed.diet.fasta {output.host_proteins} {output.bacterial_proteins} {output.dietary_proteins} 
+		python {params.iphomed_dir}/scripts/proteomics3D.py {input.proteomics} {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.diet.fasta {output.host_proteins} {output.bacterial_proteins} {output.dietary_proteins} 
 		"""
 
 

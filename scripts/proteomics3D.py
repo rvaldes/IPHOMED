@@ -34,8 +34,11 @@ with open(sys.argv[4], 'r') as file:
     for line in file:
         line = line.strip()
         if '>' in line:
-            line = line.replace('>', '')
-            diet[line] = 0
+            match = re.search(r'\|([0-9A-Z]*)\|', line)
+            if match:
+                protein = match.group(1)
+                diet[protein] = 0
+
 
 # preparing output files
 host_file = open(sys.argv[5], 'w')

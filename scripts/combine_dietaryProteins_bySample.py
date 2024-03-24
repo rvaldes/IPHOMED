@@ -35,7 +35,7 @@ columns_to_remove = ['Fragment Sequence Coverage', 'Modification Info List',
                      'Sequence Coverage with Mods', 'Sequence Coverage']
 df_combined.drop(columns=columns_to_remove, inplace=True)
 
-# dietary peptides
+# dietary proteins
 diet = {}
 with open(sys.argv[1], 'r') as file:
     for line in file:
