@@ -38,7 +38,7 @@ Copy the *Snakefile* and *config.yml* in your working directory.
 
 Modify the *config.yml* file according to the details of your analysis:
 
-* *PAIRED*: True/False. Single/paired-end squencing configuration.
+* *PAIRED*: True/False. Single/paired-end sequencing configuration.
 * *HOST*: HUMAN/MOUSE. Define the host in your experiment.
 * *SUB_DEPTH*: subsampling depth for shotgun metagenomics analysis
 
@@ -56,7 +56,15 @@ The working directory must have the following structure:
 
 Create the *samples.txt*, including the sample names [Sample] of all FASTQ files in FASTQs folder (shotgun metagenomics data)
 
-Create the *ExperimentalDesign.tsv* (in the mzML folder), including the information of the proteomics data.
+
+|     |
+| --- |
+| SampleA |
+| SampleB |
+| ... |
+
+
+Create the *ExperimentalDesign.tsv* (in the mzML folder), including the information on the proteomics data.
 
 | FileName    | Condition | Biorep | Fraction | Techrep
 | ----------- | ----------- | ----------- | ----------- | ----------- |
@@ -64,6 +72,7 @@ Create the *ExperimentalDesign.tsv* (in the mzML folder), including the informat
 | SampleB.mzML | Group_A | 2 | 1 | 1
 | SampleC.mzML | Group_B | 1 | 1 | 1
 | SampleD.mzML | Group_B | 2 | 1 | 1
+| ... | ... | ... | ... | ...
 
 Activate the **IPHOMED** conda environment:
 
