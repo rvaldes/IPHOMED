@@ -6,6 +6,9 @@ SUB_DEPTH: 5000000 # subsampling depth
 # Define IPHOMED directory
 IPHOMED: '' # IPHOMED directory
 
+# Define Metamorpheus CMD.dll
+METAMORPHEUS: '' # Metamorpheus CMD.dll
+
 # BOWTIE2 databases
 BOW_H_DB: '' # human database directory
 BOW_M_DB: '' # mouse database directory

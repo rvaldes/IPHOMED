@@ -29,6 +29,9 @@ UNIPROT_CRAP_DB = config['UNIPROT_CRAP_DB']
 # IPHOMED directory
 IPHOMED = config['IPHOMED']
 
+# METAMORPHEUS 
+METAMORPHEUS = config['METAMORPHEUS']
+
 if HOST == 'HUMAN':
 	BOW_DB = BOW_HUMAN_DB
 	UNIPROT_DB = UNIPROT_H_DB
@@ -89,7 +92,7 @@ if PAIRED:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
-			"fastp --in1 {input.r1} --in2 {input.r2} --detect_adapter_for_pe --stdout --length_required 50 --unpaired1 {output.unpaired} --unpaired2 {output.unpaired} | bowtie2 -x {params.bowtieDB} -p 5 --interleaved - --very-fast | samtools fastq -f 4 -N -c 6 -1 {output.r1} -2 {output.r2} -s {output.singleton} -"
+			"fastp --in1 {input.r1} --in2 {input.r2} --detect_adapter_for_pe --stdout --length_required 50 --unpaired1 {output.unpaired} --unpaired2 {output.unpaired} | bowtie2 -x {params.bowtieDB} -p {threads} --interleaved - --very-fast | samtools fastq -f 4 -N -c 6 -1 {output.r1} -2 {output.r2} -s {output.singleton} -"
 
 	rule counts:
 		input:
@@ -128,8 +131,8 @@ if PAIRED:
 			queue = 'new-short'
 		shell:
 			"""
-			seqtk sample -s 100 {input.r1} {params.sub_depth} | pigz -p 5 > {output.r1}
-			seqtk sample -s 100 {input.r2} {params.sub_depth} | pigz -p 5 > {output.r2}
+			seqtk sample -s 100 {input.r1} {params.sub_depth} | pigz -p {threads} > {output.r1}
+			seqtk sample -s 100 {input.r2} {params.sub_depth} | pigz -p {threads} > {output.r2}
 			"""
 
 	rule kraken:
@@ -151,7 +154,7 @@ if PAIRED:
 			mem = 320000,
 			queue = 'elinav'
 		shell:
-			"kraken2 --db {params.kdb} --threads 1 --output {output.out} --report {output.report} --use-names --paired {input.r1} {input.r2}"
+			"kraken2 --db {params.kdb} --threads {threads} --output {output.out} --report {output.report} --use-names --paired {input.r1} {input.r2}"
 
 else:
 	rule counts_pre:
@@ -188,7 +191,7 @@ else:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
-			"fastp --in1 {input.r1}  --stdout --length_required 50  | bowtie2 -x {params.bowtieDB} -p 5 - --very-fast | samtools fastq -f 4 -N -c 6 -0 {output.r1} -"
+			"fastp --in1 {input.r1} --stdout --length_required 50 | bowtie2 -x {params.bowtieDB} -p {threads} - --very-fast | samtools fastq -f 4 -N -c 6 -0 {output.r1} -"
 
 	rule counts:
 		input:
@@ -225,7 +228,7 @@ else:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
-			"seqtk sample -s 100 {input.r1} {params.sub_depth} | pigz -p 5 > {output.r1}"
+			"seqtk sample -s 100 {input.r1} {params.sub_depth} | pigz -p {threads} > {output.r1}"
 
 
 	rule kraken:
@@ -246,7 +249,7 @@ else:
 				mem = 320000,
 				queue = 'elinav'
 		shell:
-				"kraken2 --db {params.kdb} --threads 1 --output {output.out} --report {output.report} --use-names {input.r1} "
+				"kraken2 --db {params.kdb} --threads {threads} --output {output.out} --report {output.report} --use-names {input.r1} "
 
 rule bracken:
 	input:
@@ -347,7 +350,7 @@ if PAIRED:
 			queue = 'new-short'
 		shell:
 			"""
-			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*R1*gz) <(cat preprocess/*/*R2*gz) | samtools view -Sb - | samtools sort - > {output.bam}
+			minimap2 -t {threads} -ax sr {input.reference} <(cat preprocess/*/*R1*gz) <(cat preprocess/*/*R2*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
 			python {params.iphomed_dir}/scripts/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
@@ -374,7 +377,7 @@ else:
 			queue = 'new-short'
 		shell:
 			"""
-			minimap2 -t 20 -ax sr {input.reference} <(cat preprocess/*/*gz) | samtools view -Sb - | samtools sort - > {output.bam}
+			minimap2 -t {threads} -ax sr {input.reference} <(cat preprocess/*/*gz) | samtools view -Sb - | samtools sort - > {output.bam}
 			samtools depth -a {output.bam} > {output.depth}
 			python {params.iphomed_dir}/scripts/genome_coverage.py {input.assembly_info} {output.depth} > {output.summary_depth}
 			"""
@@ -433,7 +436,7 @@ rule aligment2proteinsequence:
 		queue = 'new-short'
 	shell:
 		"""
-		diamond blastx -q <(zcat preprocess/*/*_R*gz) -o {output.diamond} --db {input.database}  -e 0.001 --threads 10 -k 1 -c 1
+		diamond blastx -q <(zcat preprocess/*/*_R*gz) -o {output.diamond} --db {input.database}  -e 0.001 --threads {threads} -k 1 -c 1
 		bioawk  -c fastx '{{ print $name, length($seq) }}' < {input.fasta} > {output.lengths}
 		cat {output.diamond} | python {params.iphomed_dir}/scripts/protein_coverage.py {output.lengths} > {output.summary_depth}
 		awk '$5>0' {output.summary_depth} | awk '{{print $1}}' > {output.summary_depth_filtered}
@@ -480,7 +483,7 @@ if PAIRED:
 			queue = 'new-short'
 		shell:
 			"""
-			zcat {input.r1} {input.r2} | diamond blastx -o {output.diamond} --db {input.db} -e 0.001 --threads 10 -k 1 -c 1
+			zcat {input.r1} {input.r2} | diamond blastx -o {output.diamond} --db {input.db} -e 0.001 --threads {threads} -k 1 -c 1
 			"""
 
 else:
@@ -501,7 +504,7 @@ else:
 			queue = 'new-short'
 		shell:
 			"""
-			diamond blastx -q {input.r1} -o {output.diamond} --db {input.db} -e 0.001 --threads 10 -k 1 -c 1
+			diamond blastx -q {input.r1} -o {output.diamond} --db {input.db} -e 0.001 --threads {threads} -k 1 -c 1
 			"""
 
 rule iphomed_proteomics_calibration:
@@ -509,7 +512,8 @@ rule iphomed_proteomics_calibration:
 		exDesign = 'mzML/ExperimentalDesign.tsv'
 	params:
 		iphomed_host = UNIPROT_DB,
-		iphomed_dir = IPHOMED
+		iphomed_dir = IPHOMED,
+		metamorpheus = METAMORPHEUS
 	output:
 		calibrated = join('iphomed', 'Calibrated', 'Task1CalibrationTask/AutoGeneratedManuscriptProse.txt'),
 		exDesign = join('iphomed', 'Calibrated', 'Task1CalibrationTask/ExperimentalDesign.tsv')
@@ -524,7 +528,7 @@ rule iphomed_proteomics_calibration:
 		queue = 'elinav'
 	shell:
 		"""
-		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} -s mzML/ -t {params.iphomed_dir}/TaskCalibrationTaskconfig.toml -o iphomed/Calibrated
+		dotnet {params.metamorpheus} -d {params.iphomed_host} -s mzML/ -t {params.iphomed_dir}/TaskCalibrationTaskconfig.toml -o iphomed/Calibrated
 		"""
 
 
@@ -536,6 +540,7 @@ rule iphomed_proteomics_search:
 		iphomed_dir = IPHOMED,
 		iphomed_host = UNIPROT_DB,
 		iphomed_crap = UNIPROT_CRAP_DB,
+		metamorpheus = METAMORPHEUS
 	output:
 		search = join('iphomed', 'Search', 'Task1SearchTask/AllQuantifiedProteinGroups.tsv')
 	log:
@@ -549,7 +554,7 @@ rule iphomed_proteomics_search:
 		queue = 'new-medium'
 	shell:
 		"""
-		dotnet /home/labs/elinav/rvaldes/miniconda3/envs/iphomed/lib/dotnet/tools/metamorpheus/CMD.dll -d {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.diet.fasta {params.iphomed_crap} -s iphomed/Calibrated/Task1CalibrationTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
+		dotnet {params.metamorpheus} -d {params.iphomed_host} {input.iphomed_bacteria} {params.iphomed_dir}/iphomed.diet.fasta {params.iphomed_crap} -s iphomed/Calibrated/Task1CalibrationTask/ -t {params.iphomed_dir}/TaskSearchTaskconfig.toml -o iphomed/Search
 		"""
 
 rule iphomed_proteomics_3D:
@@ -599,7 +604,7 @@ rule iphomed_dietary_signal:
 	shell:
 		"""
 		python {params.iphomed_dir}/scripts/dietary_peptides.py {input.proteomics} > {output.dietary_peptides}
-		blastp -query {output.dietary_peptides} -db /shareDB/nr/Jul-2022/nr -out {output.blastp_output} -word_size 2 -matrix PAM30 -threshold 11 -comp_based_stats 0 -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids\" -evalue 200000 -gapopen 9 -gapextend 1 -num_alignments 100 -window_size 40 -num_threads 40
+		blastp -query {output.dietary_peptides} -db /shareDB/nr/Jul-2022/nr -out {output.blastp_output} -word_size 2 -matrix PAM30 -threshold 11 -comp_based_stats 0 -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids\" -evalue 200000 -gapopen 9 -gapextend 1 -num_alignments 100 -window_size 40 -num_threads {threads}
 		echo -e \"Query\\tTarget\\tevalue\tbitscore\\tTaxID\\tGenusTaxID\\tGenusName\tLevel\" > {output.blastp_output_annotated}
 		cat {output.blastp_output} | taxonkit lineage -t -i 13 | csvtk cut -Ht -f 1,2,11,12,13,15 | csvtk unfold -Ht -f 6 -s \";\" | taxonkit lineage -r -n -L -i 6 | awk '$(NF)==\"genus\"' >> {output.blastp_output_annotated}
 		"""
