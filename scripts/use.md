@@ -53,7 +53,7 @@ The working directory must have the following structure:
 
 Create the *samples.txt*, including the sample names [Sample] of all FASTQ files in FASTQs folder (shotgun metagenomics data)
 
-Create the ExperimentalDesign.tsv, including the information of the proteomics data.
+Create the *ExperimentalDesign.tsv* (in the mzML folder), including the information of the proteomics data.
 
 | FileName    | Condition | Biorep | Fraction | Techrep
 | ----------- | ----------- | ----------- | ----------- | ----------- |
