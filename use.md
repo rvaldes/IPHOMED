@@ -1,8 +1,9 @@
 
 
-<img src="images/logo_v2.png" width=70% />
-
-
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/logo_LM.png" width=80%>
+  <img src="images/logo_DM.png" width=80%>
+</picture>
 
 # Installation
 Clone the repository and enter it:
