@@ -65,7 +65,7 @@ Create the *samples.txt*, including the sample names "[Sample]_R1_001.fastq.gz" 
 | ... |
 
 
-Create the *ExperimentalDesign.tsv* (in the mzML folder), including the information on the proteomics data.
+Create the *ExperimentalDesign.tsv* (in the mzML folder), including the information on the proteomics data. [Example](https://github.com/smith-chem-wisc/MetaMorpheus/wiki/Experimental-Design):
 
 | FileName    | Condition | Biorep | Fraction | Techrep
 | ----------- | ----------- | ----------- | ----------- | ----------- |
@@ -91,3 +91,5 @@ The output *iphomed* folder will contain the following files:
 * *diet.proteins.tsv*: dietary proteins detected by IPHOMED without quality filtering.
 * *diet.proteins.filtered.tsv*: high-quality dietary proteins detected after refinement.
 * *diet.proteins.filtered.bySample.tsv*: high-quality dietary proteins detected in each sample independently.
+
+# Follow-up analysis
