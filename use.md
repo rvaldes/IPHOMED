@@ -11,7 +11,7 @@ git clone https://github.com/rvaldes/IPHOMED.git
 cd IPHOMED
 ```
 
-Create a miniconda environment with the included conda environment file.
+Create a conda environment with the included conda environment file.
 
 ```text
 conda env create -n iphomed -f iphomed.yml
