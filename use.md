@@ -38,9 +38,9 @@ Copy the *Snakefile* and *config.yml* in your working directory.
 
 Modify the *config.yml* file according to the details of your analysis:
 
-* *PAIRED*: True/False. Single/paired-end sequencing configuration.
-* *HOST*: HUMAN/MOUSE. Define the host in your experiment.
-* *SUB_DEPTH*: subsampling depth for shotgun metagenomics analysis
+* PAIRED: True/False. Single/paired-end sequencing configuration.
+* HOST: HUMAN/MOUSE. Define the host in your experiment.
+* SUB_DEPTH: subsampling depth for shotgun metagenomics analysis
 
 The working directory must have the following structure:
 ```text
@@ -80,7 +80,7 @@ Activate the **IPHOMED** conda environment:
 conda activate iphomed
 ```
 
-Finally, run the command (Adjust the parameters according to your cluster)
+Finally, run the command (adjust the parameters according to your cluster):
 ```text
 snakemake
 ```
