@@ -86,10 +86,10 @@ Finally, run the command (adjust the parameters according to your cluster):
 snakemake
 ```
 The output *iphomed* folder will contain the following files:
-* *host.proteins.tsv*: host proteins detected by IPHOMED.
-* *bacteria.proteins.tsv*: bacterial proteins detected by IPHOMED.
-* *diet.proteins.tsv*: dietary proteins detected by IPHOMED without quality filtering.
-* *diet.proteins.filtered.tsv*: high-quality dietary proteins detected after refinement.
+* *host.proteins.tsv*: host proteins detected by **IPHOMED**.
+* *bacteria.proteins.tsv*: bacterial proteins detected by **IPHOMED**.
+* *diet.proteins.tsv*: dietary proteins detected by **IPHOMED** without quality filtering.
+* *diet.proteins.filtered.tsv*: high-quality dietary proteins detected after **IPHOMED** refinement.
 * *diet.proteins.filtered.bySample.tsv*: high-quality dietary proteins detected in each sample independently.
 
 # Follow-up analysis
