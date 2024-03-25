@@ -1,6 +1,6 @@
 
 
-<img src="images/logo_v2.png"  />
+<img src="images/logo_v2.png" width=70% />
 
 
 
