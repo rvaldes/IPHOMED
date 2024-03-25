@@ -1,10 +1,13 @@
 
-<table border="0" style="border-collapse: collapse;">
-  <tr>
-    <th style="text-align: left;"><img src="images/logo.png" width="80" height="80" /></th>
-    <th style="text-align: left;"><span style="font-weight: bold;">IPHOMED</span><br><span style="font-weight: lighter;">Integrated Proteomics of HOst-MicrobiomE-Diet</span></th>
-  </tr>
-</table>
+<div style="display: flex;">
+  <div style="margin-right: 20px;">
+    <img src="images/logo.png" width="80" height="80" />
+  </div>
+  <div>
+    <div><b>IPHOMED</b></div>
+    <div style="">Integrated Proteomics of HOst-MicrobiomE-Diet</div>
+  </div>
+</div>
 
 
 # Installation
