@@ -1,13 +1,6 @@
 
-<div style="display: flex; align-items: center;">
-  <div style="margin-right: 20px;">
-    <img src="images/logo.png" width="80" height="80" />
-  </div>
-  <div>
-    <div><b>IPHOMED</b></div>
-    <div style="">Integrated Proteomics of HOst-MicrobiomE-Diet</div>
-  </div>
-</div>
+
+<img src="images/logo_v2.png"  />
 
 
 
