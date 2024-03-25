@@ -1,11 +1,10 @@
 
-<table>
+<table style="border-collapse: collapse;">
   <tr>
-    <th><img src="images/logo.png" width="80 " height="80" /></th>
-    <th><span style="font-weight: bold;">IPHOMED</span><br><span style="color: #999;">Integrated Proteomics of HOst-MicrobiomE-Diet</span></th>
+    <th style="text-align: left;"><img src="images/logo.png" width="80" height="80" /></th>
+    <th style="text-align: left;"><span style="font-weight: bold;">IPHOMED</span><br><span style="font-weight: lighter;">Integrated Proteomics of HOst-MicrobiomE-Diet</span></th>
   </tr>
 </table>
-
 
 # Installation
 Clone the repository and enter it:
