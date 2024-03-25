@@ -49,13 +49,13 @@ The working directory must have the following structure:
 |- config.yml
 |- samples.txt
 |- FASTQs/
-   |- [Sample]_R[12]_001.fastq.gz
+   |- *_R[12]_001.fastq.gz
 |- mzML/
    |- *mzML
    |- ExperimentalDesign.tsv
 ```
 
-Create the *samples.txt*, including the sample names [Sample] of all FASTQ files in FASTQs folder (shotgun metagenomics data)
+Create the *samples.txt*, including the sample names "[Sample]_R1_001.fastq.gz" of all FASTQ files in FASTQs folder (shotgun metagenomics data)
 
 
 |     |
