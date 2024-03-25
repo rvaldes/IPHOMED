@@ -1,5 +1,5 @@
 
-<div style="display: flex;">
+<div style="display: flex; align-items: center;">
   <div style="margin-right: 20px;">
     <img src="images/logo.png" width="80" height="80" />
   </div>
@@ -8,6 +8,7 @@
     <div style="">Integrated Proteomics of HOst-MicrobiomE-Diet</div>
   </div>
 </div>
+
 
 
 # Installation
