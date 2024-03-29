@@ -23,7 +23,7 @@ diet_file = open(sys.argv[3], 'w')
 with open(sys.argv[2], 'r') as file:
     for line in file:
         line = line.strip()
-        cols = line.split(' ')
+        cols = line.split('\t')
         if cols[0] == "Protein":
             diet_file.write(line + '\n')
         else:

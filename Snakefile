@@ -606,7 +606,7 @@ rule iphomed_dietary_signal:
 		python {params.iphomed_dir}/scripts/dietary_peptides.py {input.proteomics} > {output.dietary_peptides}
 		blastp -query {output.dietary_peptides} -db /shareDB/nr/Jul-2022/nr -out {output.blastp_output} -word_size 2 -matrix PAM30 -threshold 11 -comp_based_stats 0 -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids\" -evalue 200000 -gapopen 9 -gapextend 1 -num_alignments 100 -window_size 40 -num_threads {threads}
 		echo -e \"Query\\tTarget\\tevalue\tbitscore\\tTaxID\\tGenusTaxID\\tGenusName\tLevel\" > {output.blastp_output_annotated}
-		cat {output.blastp_output} | awk '{n=0;for(i=13;i<=NF;i++) {t=split($i,a,";");if(t>n) n=t};for(j=1;j<=n;j++) {printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12;for(i=13;i<=13;i++) {split($i,a,";");printf "\t%s",(a[j]?a[j]:a[1])};print ""}}' | taxonkit lineage -t -i 13 | csvtk cut -Ht -f 1,2,11,12,13,15 | csvtk unfold -Ht -f 6 -s \";\" | taxonkit lineage -r -n -L -i 6 | awk '$(NF)==\"genus\"' >> {output.blastp_output_annotated}
+		cat {output.blastp_output} | awk '{{n=0;for(i=13;i<=NF;i++) {{t=split($i,a,";");if(t>n) n=t}};for(j=1;j<=n;j++) {{printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12;for(i=13;i<=13;i++) {{split($i,a,";");printf "\t%s",(a[j]?a[j]:a[1])}};print ""}} }}' | taxonkit lineage -t -i 13 | csvtk cut -Ht -f 1,2,11,12,13,15 | csvtk unfold -Ht -f 6 -s \";\" | taxonkit lineage -r -n -L -i 6 | awk '$(NF)==\"genus\"' >> {output.blastp_output_annotated}
 		"""
 
 rule iphomed_diet_filter:
