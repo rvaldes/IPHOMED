@@ -24,10 +24,10 @@ with open(sys.argv[2], 'r') as file:
     for line in file:
         line = line.strip()
         cols = line.split('\t')
-        if cols[0] == "Protein":
+        if cols[0] == "Protein Accession":
             diet_file.write(line + '\n')
         else:
-            if cols[0] in diet:
+            if cols[0] in diet and int(cols[9]) > 0:
                 diet_file.write(line + '\n')
 
 diet_file.close()
