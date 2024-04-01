@@ -498,9 +498,9 @@ else:
 		benchmark:
 			join('iphomed_bacteria_diamond', '{sample}', 'iphomed_bacteria_diamond.benchmark.tsv')
 		threads:
-			10
+			20
 		resources:
-			mem = 5000,
+			mem = 2500,
 			queue = 'new-short'
 		shell:
 			"""

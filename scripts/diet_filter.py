@@ -14,7 +14,10 @@ with open(sys.argv[1], 'r') as file:
     for line in file:
         line = line.strip()
         cols = line.split('\t')
-        diet[cols[2]] = 0
+        if cols[0] == "Query":
+            continue
+        if int(cols[1]) > 0 and int(cols[3]) == 100:
+            diet[cols[4]] = 0
 
 # preparing output file
 diet_file = open(sys.argv[3], 'w')

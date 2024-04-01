@@ -1,4 +1,3 @@
-
 ### Integrated Proteomics of HOst-MicrobiomE-Diet (IPHOMED)
 ### Rafael Valdés-Mas (Elinav Lab)
 
@@ -17,8 +16,9 @@ genus_blastout$Protein <- gsub("_[0-9]*$", "", genus_blastout$Query)
 genus_blastout <- merge( genus_blastout, genus_database, by = "Protein", all.x = TRUE)
 
 # filter
-count_peptides <- subset(genus_blastout, evalue<0.01) %>% group_by(Query) %>% arrange(evalue) %>% slice_max(with_ties = TRUE, order_by=bitscore) %>% summarize(Count=length(GenusTaxID[Genus_TaxID==GenusTaxID]))
+count_peptides <- subset(genus_blastout, evalue<0.01) %>% group_by(Query) %>% arrange(evalue) %>% slice_max(with_ties = TRUE, order_by=bitscore) %>% summarize(Count=length(GenusTaxID[Genus_TaxID==GenusTaxID]), Total=length(GenusTaxID) )
 count_peptides <- as.data.frame(count_peptides)
+count_peptides$Ratio <- 100 * count_peptides$Count / count_peptides$Total
 count_peptides <- subset(count_peptides, Count>0)
 count_peptides$Protein <- gsub("_[0-9]*$", "", count_peptides$Query)
 
