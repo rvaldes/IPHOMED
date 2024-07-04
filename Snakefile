@@ -92,7 +92,7 @@ if PAIRED:
 			mem = 5000,
 			queue = 'new-short'
 		shell:
-			"fastp --in1 {input.r1} --in2 {input.r2} --detect_adapter_for_pe --stdout --length_required 50 --unpaired1 {output.unpaired} --unpaired2 {output.unpaired} | bowtie2 -x {params.bowtieDB} -p {threads} --interleaved - --very-fast | samtools fastq -f 4 -N -c 6 -1 {output.r1} -2 {output.r2} -s {output.singleton} -"
+			"fastp --in1 {input.r1} --in2 {input.r2} --detect_adapter_for_pe --stdout --length_required 50 --unpaired1 {output.unpaired} --unpaired2 {output.unpaired} | bowtie2 -x {params.bowtieDB} -p {threads} --interleaved - --very-fast | samtools fastq -f 12 -N -c 6 -1 {output.r1} -2 {output.r2} -s {output.singleton} -"
 
 	rule counts:
 		input:
