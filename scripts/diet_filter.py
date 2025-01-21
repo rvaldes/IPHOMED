@@ -16,7 +16,7 @@ with open(sys.argv[1], 'r') as file:
         cols = line.split('\t')
         if cols[0] == "Query":
             continue
-        if int(cols[1]) > 0 and int(cols[3]) == 100:
+        if int(cols[1]) > 0 and float(cols[3]) >= 100:
             diet[cols[4]] = 0
 
 # preparing output file
