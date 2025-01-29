@@ -28,6 +28,8 @@ Modify the *config.yml* file to include all the databases required for the analy
   * Reference proteomes are available at https://www.uniprot.org/proteomes/
 * cRAP protein sequences (fasta format)
   * Available at https://www.thegpm.org/crap/
+* Dietary proteome (refined IPHOMED database)
+  * Available at https://drive.google.com/file/d/1fL0PpcpqG3ZobJfY-0om2o9_8IJ8RNIH/view?usp=drive_link
 * **IPHOMED** installation folder
 * *Metamorpheus* (CMD.dll) path.
   * Locate it in your **IPHOMED** conda environment folder. 
