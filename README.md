@@ -92,6 +92,6 @@ The output *iphomed* folder will contain the following files:
 * *host.proteins.tsv*: host proteins detected by **IPHOMED**.
 * *bacteria.proteins.tsv*: bacterial proteins detected by **IPHOMED**.
 * *diet.proteins.tsv*: dietary proteins detected by **IPHOMED** without quality filtering.
-* *diet.proteins.filtered.tsv*: high-quality dietary proteins detected after **IPHOMED** refinement.
-* *diet.proteins.filtered.bySample.tsv*: high-quality dietary proteins detected in each sample independently.
+* *diet.proteins.filtered.tsv*: filtered dietary proteins detected after **IPHOMED** refinement.
+* *diet.proteins.filtered.bySample.tsv*: filtered dietary proteins detected in each sample independently.
 
